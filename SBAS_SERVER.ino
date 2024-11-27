@@ -1,12 +1,12 @@
-#include <WiFiNINA.h>
-#include <ArduinoJson.h>  //Server-Client, To Parsing Datas
+#include <WiFiNINA.h>     //아두이노 와이파이2 보드용 라이브러리(와이파이를 이용한 서버 접속)
+#include <ArduinoJson.h>  //Server-Client, To Parsing Datas, 서버-클라이언트 데이터 파싱을 위한 라이브라리.(JASON 형식)
 
-#include <DallasTemperature.h>  //Temperature Sensor Libary
+#include <DallasTemperature.h>  //Temperature Sensor Libary, 온도 센서를 위한 라이브러리
 
-#include <Arduino_LSM6DS3.h>  //Gyro Sensor Libarary
+#include <Arduino_LSM6DS3.h>  //Gyro Sensor Libarary, 자이로 센서를 위한 라이브러리
 
 #include <NTPClient.h>
-#include <WiFiUdp.h>    //To get Server Time
+#include <WiFiUdp.h>    //To get Server Time, 서버 시간을 얻어오기 위한 라이브러리(NTPClient로 부터 시간 GET)
 //------------------------------------------------------------------------------
 #define _WARNING -1
 #define _SAFE 0
@@ -38,8 +38,8 @@ int buzzer = 12;  //수동 부저 모듈 핀
 
 IPAddress serverIP(xxx, xx, x, xx);  //Put IP Addres in x  "xxx.xx.x.xx"
 
-//char ssid[] = "YOUR_SSID";
-//char pass[] = "YOUR_PSSWD";
+char ssid[] = "YOUR_SSID";
+char pass[] = "YOUR_PSSWD";
 
 int port = 80;  //Random port, It could be another value.
 int status = WL_IDLE_STATUS;
