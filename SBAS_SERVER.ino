@@ -287,7 +287,7 @@ void pushData(unsigned long actTime){    //장치 동작 시간을 파라미터�
     }
     sendFCM(getToken());      //사용자 어플을 통해 알람을 보내기 위한 처리 함수.
   }                            //경보기(H/W) -> 서버 -> 사용자 어플| 이때 token 값 이용
-}
+}                          //서버 관련 함수는 Line 389부터
 
 bool toggleControl(){    //버튼 값을 bool로 반환하는 함수
   if(digitalRead(sw) == LOW && !isPushed){  //버튼이 눌렸을 때
