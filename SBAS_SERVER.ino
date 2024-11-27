@@ -31,7 +31,7 @@ int sw = 13;  //SW 모듈 핀(tact-switch, 인터럽트용)
 
 int led_G = 9;
 int led_R = 10;
-int led_B = 6;  //3-Color LED 모듈 핀
+int led_B = 6;  //3-Color LED 모듈 핀, PWM 제어 가능
 
 int buzzer = 12;  //수동 부저 모듈 핀
 //------------------------------------------------------------------------------
@@ -57,7 +57,7 @@ NTPClient timeClient(ntpUDP, ntpServer, timeZone*3600);    //NTP로부터 시간
 const char* token;             //서버로부터 토큰 값을 가져올 변수
 
 unsigned long previousMillis = 0;  //이전 시간 저장
-const long interval = 500;         //인터벌 타임 지정
+const long interval = 500;         //인터벌 타임 지정, 0.5s
 
 static unsigned long earthquakeStartTime = 0;    // 지진 시작 시간을 기록하는 변수
 const unsigned long earthquakeThreshold = 1500;  // 1.5초 이상일 때 감지
@@ -104,69 +104,69 @@ void init_sensors() {  //각종 센서 초기화 함수
 void ledColor(int red, int green, int blue) {  //LED 색 지정 함수
   analogWrite(led_R, red);
   analogWrite(led_G, green);
-  analogWrite(led_B, blue);
+  analogWrite(led_B, blue);        //PWM 제어이므로 아날로그 값
 }
 void buzzerLedPattern(int SBAS_status) {  //하드웨어 동작부(LED 및 부저)
-  unsigned long currentMillis = millis();
-  switch (SBAS_status) {
-    case _SAFE:
-      ledColor(32, 32, 32);
-      noTone(buzzer);
+  unsigned long currentMillis = millis();  //아두이노의 동작 시간 저장. 멀티 쓰레딩 흉내내기
+  switch (SBAS_status) {      //SBAS의 상태가
+    case _SAFE:               //안전이라면
+      ledColor(32, 32, 32);    //옅은 백색
+      noTone(buzzer);          //경고음 없음
       break;
 
-    case _WARNING:
-      ledColor(128, 128, 0);
-      if (currentMillis - previousMillis >= interval) {
-        tone(buzzer, 300);
-        previousMillis = currentMillis;
+    case _WARNING:            //경고라면
+      ledColor(128, 128, 0);   //황색 표시
+      if (currentMillis - previousMillis >= interval) {  //아도이노 동작시간 - 이전 동작 시간 값 >= 0.5s 라면
+        tone(buzzer, 300);     //300Hz의 경고음
+        previousMillis = currentMillis;    //이전 동작 시간 값에 현재 동작 시간 값 저장
+      } else noTone(buzzer);    //경고음 해제
+      break;
+
+    case _FIRE:                //화재라면
+      ledColor(255, 0, 0);      //밝은 적색 표시
+      if (currentMillis - previousMillis >= interval / 2) {  //WARING의 경우보다 2배 빠른 주기
+        tone(buzzer, 800);      //800Hz의 경고음
+        previousMillis = currentMillis; 
       } else noTone(buzzer);
       break;
 
-    case _FIRE:
-      ledColor(255, 0, 0);
+    case _GAS:                  //가스 유출이라면
+      ledColor(128, 255, 0);      //녹황색 표시
       if (currentMillis - previousMillis >= interval / 2) {
-        tone(buzzer, 800);
+        tone(buzzer, 550);        //550Hz 경고음
         previousMillis = currentMillis;
       } else noTone(buzzer);
       break;
 
-    case _GAS:
-      ledColor(128, 255, 0);
-      if (currentMillis - previousMillis >= interval / 2) {
-        tone(buzzer, 550);
-        previousMillis = currentMillis;
-      } else noTone(buzzer);
-      break;
-
-    case _QUAKE:
-      ledColor(0, 0, 255);
+    case _QUAKE:                  //지진이라면
+      ledColor(0, 0, 255);        //청색 표시
       if (currentMillis - previousMillis >= interval) {
-        tone(buzzer, 1100);
+        tone(buzzer, 1100);      //1100Hz 경고음
         previousMillis = currentMillis;
       } else noTone(buzzer);
       break;
   }
 }
-bool flameSensor() {  //불꽃 감지 센서 동작부
-  bool flame;         //불꽃 감지 상태 변수
-  flame = (digitalRead(flame_sensor));
+bool flameSensor() {  //불꽃 감지 센서 동작부, bool 값 리턴
+  bool flame;         //불꽃 감지 상태 변수, 불꽃 감지 센서를 디지털 센서로 사용. (0 or 1)
+  flame = (digitalRead(flame_sensor));  //센서 값 저장
   return flame;
 }
 
-float tempSensor() {  //온도 감지 센서 동작부
-  float celcius;      //온도 표시 변수
-  temp.requestTemperatures();
-  celcius = temp.getTempCByIndex(0);
+float tempSensor() {  //온도 감지 센서 동작부, float 값 리턴
+  float celcius;      //온도 표시 변수, 소수점 단위까지 센싱하므로 float 사용
+  temp.requestTemperatures();  //기본 내장함수로, 온도 값을 요청함
+  celcius = temp.getTempCByIndex(0);  //온도 값 저장
   return celcius;
 }
 
-float gasSensorCO() {  //CO 센서
-  float ppmCO;
-  ppmCO = (analogRead(gas_CO)) - 80.0;
+float gasSensorCO() {  //CO 센서, float 값 리턴
+  float ppmCO;          //CO 농도 변수
+  ppmCO = (analogRead(gas_CO)) - 80.0;    //80의 값은 편차 조정 용도, 아날로그 센싱
   return ppmCO;
 }
 
-float gasSensorFlammable() {  //인화성 가스 센서
+float gasSensorFlammable() {  //인화성 가스 센서, 위와 동일하므로 생략
   float ppmFlammable;
   ppmFlammable = (analogRead(gas_flammable)) - 40.0;
   return ppmFlammable;
@@ -175,22 +175,22 @@ float gasSensorFlammable() {  //인화성 가스 센서
 bool gyroSensor() {      //지진 감지 센서 동작부 (n초 이상 감지시 값 리턴)
   static float x, y, z;  //자이로 센서에 이용될 변수
 
-  if (IMU.accelerationAvailable()) {
-    IMU.readAcceleration(x, y, z);
-  }
-  if (abs(x) > 0.3 || abs(y) > 0.3) {
+  if (IMU.accelerationAvailable()) {    //자이로 센서가 활성화 되어있다면
+    IMU.readAcceleration(x, y, z);      //x, y, z 각 축의 값을 저장(z축은 사용x -> 지진이므로 횡축의 진동만 사용)
+  }                                      //IMU 센서는 자이로 센서보다는 가속도 센서에 가까우므로 x, y, z(수직축) 중 x, y의 편차 만을 사용
+  if (abs(x) > 0.3 || abs(y) > 0.3) {    //x 혹은 y의 값이 0.3보다 크다면
     // 최초 감지 시간을 설정
-    if (earthquakeStartTime == 0) {
-      earthquakeStartTime = millis();
+    if (earthquakeStartTime == 0) {      //최초 지진 감지 시각이 0이라면
+      earthquakeStartTime = millis();     //동작 시간으로 시간 기록
     }
-    return false;
+    return false;    //0 반환
   } else {
-    if (earthquakeStartTime != 0) {
-      if (millis() - earthquakeStartTime >= earthquakeThreshold) {
-        Serial.println("Earthquake threshold reached, alarm ON");
-        return true;
-      } else return false;
-    } else return false;
+    if (earthquakeStartTime != 0) {        //지진 감지 시간이 0이 아니고
+      if (millis() - earthquakeStartTime >= earthquakeThreshold) {    //동작 시간 - 지진 시간 >= 1.5 라면
+       // Serial.println("Earthquake threshold reached, alarm ON");    //디버깅용 코드
+        return true;        //1 반환
+      } else return false;  
+    } else return false;    //그 외의 경우는 모두 0 반환
   }
 }
 String getTime() {
