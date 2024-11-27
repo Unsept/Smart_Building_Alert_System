@@ -8,7 +8,7 @@
 #include <NTPClient.h>
 #include <WiFiUdp.h>    //서버 시간을 얻어오기 위한 라이브러리(NTPClient로 부터 시간 GET)
 //------------------------------------------------------------------------------
-#define _WARNING -1
+#define _WARNING -1 
 #define _SAFE 0
 #define _FIRE 1
 #define _GAS 2
@@ -106,7 +106,7 @@ void ledColor(int red, int green, int blue) {  //LED 색 지정 함수
   analogWrite(led_G, green);
   analogWrite(led_B, blue);        //PWM 제어이므로 아날로그 값
 }
-void buzzerLedPattern(int SBAS_status) {  //하드웨어 동작부(LED 및 부저)
+void buzzerLedPattern(int SBAS_status) {  //H/W 동작부(LED 및 부저)
   unsigned long currentMillis = millis();  //아두이노의 동작 시간 저장. 멀티 쓰레딩 흉내내기
   switch (SBAS_status) {      //SBAS의 상태가
     case _SAFE:               //안전이라면
@@ -303,65 +303,65 @@ bool toggleControl(){    //버튼 값을 bool로 반환하는 함수
   return toggleAlert;
 }
 
-void handleDevice(bool control){
-    if(!control) buzzerLedPattern(SBAS_status);
-    else { ledColor(0, 0, 0); noTone(buzzer);
-      Serial.println("*****All Alarms Are Disabled. Check Your Device.***** "); }
+void handleDevice(bool control){      //매개변수로 위의 함수를 이용할 것임
+    if(!control) buzzerLedPattern(SBAS_status);  //버튼이 눌리지 않았다면 장치 동작
+    else { ledColor(0, 0, 0); noTone(buzzer);    //버튼이 눌리면 알람 일괄 해제를 의미(데이터는 서버로 전송됨)
+      //Serial.println("*****All Alarms Are Disabled. Check Your Device.***** "); }  //디버깅 코드
 }
 
-void printWifiStatus() {
+/*void printWifiStatus() {      //와이파이 상태창 출력 함수이나 디버깅 용임
   Serial.print("SSID: ");
-  Serial.println(WiFi.SSID());
+  Serial.println(WiFi.SSID());    //와이파이 ID와
 
   IPAddress ip = WiFi.localIP();
   Serial.print("IP Address: ");
-  Serial.println(ip);
+  Serial.println(ip);              //해당 IP를 제공
 
-  delay(5000);
-}
+  delay(5000);            //안전한 연결을 위해 5초간 딜레이
+}*/
 
-void connectWiFi() {
-  while (status != WL_CONNECTED) {
-    Serial.print("Attempting to connect to SSID: ");
-    Serial.println(ssid);
-    status = WiFi.begin(ssid, pass);
+void connectWiFi() {          //와이파이 연결 함수
+  while (status != WL_CONNECTED) {      //아직 연결되지 않았다면
+    //Serial.print("Attempting to connect to SSID: ");  
+    //Serial.println(ssid);        //디버깅, 연결 중이라 표시
+    status = WiFi.begin(ssid, pass);    //연결 되고 나면 연결된 와이파이로 상태를 변경
 
-    delay(5000);
+    delay(5000);      //위 함수와 같은 이유
   }
 }
 
-void setupTime() {
-  timeClient.begin();
-  timeClient.setTimeOffset(3600 * 9);
-  timeClient.forceUpdate();
+void setupTime() {      //서버 시간을 가져오는 함수
+  timeClient.begin();    //객체 실행
+  //timeClient.setTimeOffset(3600 * 9);    //타임오프셋이나 위에서 GMT9로 조정했으므로 불필요
+  timeClient.forceUpdate();  //강제 업데이트
 }
 
-void sendRequest(const char* endpoint, DynamicJsonDocument& doc) {
-    if (client.connect(serverIP, _PORT)) {
-        Serial.println("Connected to Server");
+void sendRequest(const char* endpoint, DynamicJsonDocument& doc) {  //엔드 포인트 값과 JSON 값을 매개변수로 이용
+    if (client.connect(serverIP, _PORT)) {      //클라이언트가 해당 IP와 포트에 연결되어있을 때,
+       // Serial.println("Connected to Server");   //디버깅용
 
-        String jsonString;
-        serializeJson(doc, jsonString);
+        String jsonString;                //전송될 데이터가 담길 변수 생성
+        serializeJson(doc, jsonString);    //JSON 파싱
 
-        client.print("POST /");
-        client.print(endpoint);
+        client.print("POST /");            //요청문 시작, POST 방식
+        client.print(endpoint);            //엔드포인트는 후술할 함수에서 등장
         client.print(" HTTP/1.1\r\n");
         client.print("Host: ");
-        client.println(serverIP);
+        client.println(serverIP);         //서버의 주소
         client.print(":");
-        client.print(_PORT);
+        client.print(_PORT);              //포트
         client.println("Connection: close");
         client.println("Content-Type: application/json");
         client.print("Content-Length: ");
-        client.println(jsonString.length() + 1);
+        client.println(jsonString.length() + 1);   //데이터 값 + 1 만큼의 길이
         client.println();
-        client.println(jsonString);
-        Serial.println(jsonString);
-        Serial.println("HTTP Request Sent");
+        client.println(jsonString);        //데이터 전송, 요청문 종료
+       // Serial.println(jsonString);
+       // Serial.println("HTTP Request Sent");  //디버깅용
 
-        delay(500);
+        delay(500);        //0.5초 간격
 
-        if (client.available()) {
+      /*  if (client.available()) {
             // 클라이언트 버퍼에 읽을 수 있는 데이터가 있는 경우
             while (client.available()) {
                 // 클라이언트에서 한 바이트씩 데이터를 읽어옴
@@ -374,34 +374,55 @@ void sendRequest(const char* endpoint, DynamicJsonDocument& doc) {
         } else {
             // 클라이언트 버퍼에 읽을 수 있는 데이터가 없는 경우
             Serial.println("No data available");
-        }
+        }*/        //데이터 처리가 이루어졌는지 확인하는 코드(디버깅용이므로 주석처리)
 
-        Serial.println();
-        Serial.println("Closing connection");
-        client.stop();
-    } else {
-        Serial.println("Connection to server failed");
+       // Serial.println();
+       // Serial.println("Closing connection");    //연결 종료됐다 알림
+        client.stop();  //접속 해제
+    } else {      //클라이언트 접속 실패시 밑 문구 출력
+      //  Serial.println("Connection to server failed");
     }
 
-    delay(100);
+    delay(100);      //0.1초 간격
 }
 
-void sendData_fire(){
-    DynamicJsonDocument doc(1024);
-    doc["flame"] = String(flameSensor());
+void sendData_fire(){        //화재 경보기의 값을 서버로 전송하는 함수
+    DynamicJsonDocument doc(1024);    //데이터 크기 = 2^10
+    doc["flame"] = String(flameSensor());  
     doc["temperature"] = String(tempSensor());
-    doc["sensorTime"] = getTime();
-    sendRequest("fire/save", doc);
+    doc["sensorTime"] = getTime();              //각 센서의 값을 서버 형식에 맞게 저장
+    sendRequest("fire/save", doc);          //엔드포인트: fire/save
 }
 
-void sendData_EarthQuake() {
+void sendData_EarthQuake() {        //지진 경보기
     DynamicJsonDocument doc(1024);
     doc["vibrationSensor"] = String(gyroSensor());
     doc["sensorTime"] = getTime();
     sendRequest("quake/save", doc);
+}                                                        //"192.x.x.x:port/fire/save/?flame=value" 형태       client.stop();  //접속 해제
+    } else {      //클라이언트 접속 실패시 밑 문구 출력
+      //  Serial.println("Connection to server failed");
+    }
+
+    delay(100);      //0.1초 간격
 }
 
-void sendData_gas() {
+void sendData_fire(){        //화재 경보기의 값을 서버로 전송하는 함수
+    DynamicJsonDocument doc(1024);    //데이터 크기 = 2^10
+    doc["flame"] = String(flameSensor());  
+    doc["temperature"] = String(tempSensor());
+    doc["sensorTime"] = getTime();              //각 센서의 값을 서버 형식에 맞게 저장
+    sendRequest("fire/save", doc);          //엔드포인트: fire/save
+}
+
+void sendData_EarthQuake() {        //지진 경보기
+    DynamicJsonDocument doc(1024);
+    doc["vibrationSensor"] = String(gyroSensor());
+    doc["sensorTime"] = getTime();
+    sendRequest("quake/save", doc);
+}                                                        //"x.x.x.x:port/fire/save?flame=value..." 형태가 서버로 전달
+
+void sendData_gas() {                //가스 경보기
     DynamicJsonDocument doc(1024);
     doc["flammable"] = String(gasSensorFlammable());
     doc["co"] = String(gasSensorCO());
@@ -409,43 +430,43 @@ void sendData_gas() {
     sendRequest("gas/save", doc);
 }
 
-const char* getToken() {
-    if (client.connect(serverIP, _PORT)) {
-        Serial.println("Connected to Server");
+const char* getToken() {                    //서버에게 token값을 요청하는 함수
+    if (client.connect(serverIP, _PORT)) {  
+        //Serial.println("Connected to Server");    //디버깅용
 
-        client.print("GET /");
-        client.print("token/list");
+        client.print("GET /");          //GET 방식의 요청문
+        client.print("token/list");    //엔드포인트: token/list
         client.print(" HTTP/1.1\r\n");
         client.print("Host: ");
         client.println(serverIP);
         client.print(":");
         client.print(_PORT); 
         client.println("Connection: close");
-        client.println();
+        client.println();      //요청문 종료
 
         delay(500);
 
-        while(client.connected() || client.available()) {
-            if(client.available()) {
-                String data = client.readStringUntil('\r');
-                DynamicJsonDocument doc(1024);
-                deserializeJson(doc, data);
+        while(client.connected() || client.available()) {    //클라이언트가 연결되어있거나 유호하다면
+            if(client.available()) {      //이중 검사 코드이나 위의 조건을 삭제해도 무방
+                String data = client.readStringUntil('\r');    //문자열로 공백이 있을 때까지 읽어들인 후 저장
+                DynamicJsonDocument doc(1024); 
+                deserializeJson(doc, data);    //디코딩 함수
 
-                token = doc["token"];
+                token = doc["token"];    //해당 변수에 서버로부터 읽어온 값을 저장
             }
         }
-        client.stop();
+        client.stop();        //연결 해제
 
-        delay(1000);
+        delay(1000);        //1초 간격
 
-        Serial.println("Communication Ended.");
+       // Serial.println("Communication Ended."); //디버깅용
     }
-    return token;
+    return token; 
 }
 
-void sendFCM(const char* token) {
-    DynamicJsonDocument doc(1024);
-    doc["message"]["token"] = String(token);
-    doc["message"]["data"]["warningId"] = String(SBAS_status);
-    sendRequest("fcm/sendData", doc);
+void sendFCM(const char* token) {        //token 값 매겨변수 이용                     ┌  Message  ┐
+    DynamicJsonDocument doc(1024);                                             // token        data
+    doc["message"]["token"] = String(token);                                   //                |
+    doc["message"]["data"]["warningId"] = String(SBAS_status);                 //              warningId
+    sendRequest("fcm/sendData", doc);                                          //위와 같은 class 구조
 }
