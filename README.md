@@ -16,3 +16,6 @@ S/W(서버, 데이터베이스 및 클라이언트 어플) -> Junseo0324
 
 이 코드는 서버와 클라이언트, 아두이노 장치가 동일 IP일 때 원활하게 동작됩니다.
 외부 IP를 이용하려면 일부 코드 수정과 포트포워딩 과정이 필요합니다.
+
+![image](https://github.com/user-attachments/assets/88b81370-10d5-4bfd-b928-23e1e40250b1)
+[아두이노 Uno WiFi REV2의 핀맵]
