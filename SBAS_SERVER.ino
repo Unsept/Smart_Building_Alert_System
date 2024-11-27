@@ -193,112 +193,112 @@ bool gyroSensor() {      //지진 감지 센서 동작부 (n초 이상 감지시
     } else return false;    //그 외의 경우는 모두 0 반환
   }
 }
-String getTime() {
-  String formattedDate;
-  formattedDate = timeClient.getFormattedTime();
-  return formattedDate;
+String getTime() {      //시간 값을 문자열로 반환
+  String formattedDate;    //서버 시간이 저장될 변수
+  formattedDate = timeClient.getFormattedTime();      //timeClient 객체를 통해 형식이 지정된 값 저장 (HH:MM:SS)
+  return formattedDate;  //반환
 }
 //-------------------------------------------------------------------------------------------------------------
-void mainService(bool flame, float temp, float gas_c, float gas_f, bool gyro) {
-  SBAS_status = _SAFE;
+void mainService(bool flame, float temp, float gas_c, float gas_f, bool gyro) {    //H/W 주동작 함수 구현부, 각각 불꽃, 온도, CO, 인화가스, 지진센서를 의미
+  SBAS_status = _SAFE;      //초기 값은 SAFE 상태.
 
-  printSerial(flameSensor(), tempSensor(), gasSensorCO(), gasSensorFlammable(), gyroSensor());
+ // printSerial(flameSensor(), tempSensor(), gasSensorCO(), gasSensorFlammable(), gyroSensor()); //디버깅 코드, 센싱 값 표시용
 
-  if (toggleFire) {
-    if (flame == true && temp >= 60.0) {
-      SBAS_status = _FIRE;
-      Serial.println("    Alert! FIRE Detected!    ");
-    } else if (flame == true || temp >= 60.0) {
-      SBAS_status = _WARNING;
-      Serial.println("    Caution! FIRE Danger!    ");
+  if (toggleFire) {                //화재 센서가 활성화 되어있을 때,
+    if (flame == true && temp >= 60.0) {    //불꽃이 감지되고 60도씨 이상이라면
+      SBAS_status = _FIRE;                   //화재 상태
+     // Serial.println("    Alert! FIRE Detected!    ");    //디버깅용 코드
+    } else if (flame == true || temp >= 60.0) {  //불꽃만 감지되거나 60도씨 이상이라면
+      SBAS_status = _WARNING;                    //경고 상태
+     // Serial.println("    Caution! FIRE Danger!    ");   //디버깅용 코드
     }
   }
 
-  if (toggleGas) {
-    if (gas_c >= 800 || gas_f >= 2000) {
-      SBAS_status = _GAS;
-      Serial.println("    Alert! GAS Detected!    ");
-    } else if (gas_c >= 500 && gas_c < 750 || gas_f >= 1000 && gas_f < 2000) {
-      SBAS_status = _WARNING;
-      Serial.println("    Caution! Gas Danger!    ");
+  if (toggleGas) {                //가스 센서가 활성화 되어있을 때,          (센싱 값은 변화할 수 있음)
+    if (gas_c >= 800 || gas_f >= 2000) {    //CO의 농도가 800ppm 이상이거나 인화성 가스의 농도가 2000ppm 이상이라면
+      SBAS_status = _GAS;                //가스 상태
+      //Serial.println("    Alert! GAS Detected!    ");  //디버깅용 코드
+    } else if (gas_c >= 500 && gas_c < 750 || gas_f >= 1000 && gas_f < 2000) {  //500 <= CO_ppm < 750 이거나 1000 <= 인화성_ppm < 2000 이라면
+      SBAS_status = _WARNING;            //경고 상태
+     //Serial.println("    Caution! Gas Danger!    ");    //디버깅용 코드
     }
   }
 
-  if (toggleQuake) {
-    if (gyro) {
-      SBAS_status = _QUAKE;
-      Serial.println("    Alert! EARTHQUAKE Detected!    ");
-      earthquakeStartTime = 0;
+  if (toggleQuake) {          //지진 센서가 활성화 되어있을 때,
+    if (gyro) {              //자이로 센서 값이 1이라면
+      SBAS_status = _QUAKE;    //지진 상태
+      //Serial.println("    Alert! EARTHQUAKE Detected!    ");  //디버깅용 코드
+      earthquakeStartTime = 0;  //지진 시간 값 초기화
     }
   }
 
-  Serial.println(SBAS_status);  //디버깅용
+  //Serial.println(SBAS_status);  //디버깅용
 }
 
-void printSerial(bool flame, float temp, float gas_c, float gas_f, bool gyro) {  //디버깅용 상태창 출력 함수
+/*void printSerial(bool flame, float temp, float gas_c, float gas_f, bool gyro) {  //디버깅용 상태창 출력 함수
   if (!toggleAlert) {
     Serial.println("----------Current Building's Statuses----------");
-    Serial.print("Flame: ");
+    Serial.print("Flame: ");                //화재 센서 값
     Serial.println(flame);
     Serial.print("Temperature: ");
     Serial.print(temp);
     Serial.println(" °C");
-    Serial.print("CO ppm: ");
+    Serial.print("CO ppm: ");                  //가스 센서 값
     Serial.print(gas_c);
     Serial.println(" ppm");
     Serial.print("Flammable Gas ppm: ");
     Serial.print(gas_f);
     Serial.println(" ppm");
-    Serial.print("Earthquake: ");
+    Serial.print("Earthquake: ");              //지진 센서 값
     Serial.println(gyro);
     Serial.println("-----------------------------------------------");
     Serial.println(" ");
   }
-}
+}*/
 //************************************************************************************************************************************//
-void loop() {
-  unsigned long actTime = millis() / 1000;
+void loop() {    //주 동작 함수
+  unsigned long actTime = millis() / 1000;    //내부 타이머 변수로 일정 시간마다 서버로 데이터를 보내기 위함. ms -> s로 변환
 
-  client = server.available();
+  client = server.available();        //서버-클라이언트 객체 생성
 
-  mainService(flameSensor(), tempSensor(), gasSensorCO(), gasSensorFlammable(), gyroSensor());  //내부 동작부
+  mainService(flameSensor(), tempSensor(), gasSensorCO(), gasSensorFlammable(), gyroSensor());  //내부 동작부, 상기 H/W 주 동작 함수의 매개변수들로 센서 이용
 
-  handleDevice(toggleControl());
+  handleDevice(toggleControl());    //버튼 스위치의 토글 값에 종손된 함수 code => Line 306~310.  toggleControl(): 버튼 스위치의 동작 값. code => Line 292~304
 
-  pushData(actTime);
+  pushData(actTime);  //actTime 값에 따라 데이터를 서버로 전송(push)
 
-  Serial.println(getTime());
-  Serial.println(actTime); 
+ //Serial.println(getTime());
+ //Serial.println(actTime);         //디버깅용
  
 }
 //******************************************************************************************************************************//
-void pushData(unsigned long actTime){
-  if(actTime%600 == 0){
-    sendData_fire();
+void pushData(unsigned long actTime){    //장치 동작 시간을 파라미터로 이용
+  if(actTime%600 == 0){      //10분 단위로(자동적으로)
+    sendData_fire();    
     sendData_gas();
-    sendData_EarthQuake();
+    sendData_EarthQuake();  //화재, 가스, 지진 센서의 값을 서버로 전달
   }
-  else{
-    switch(SBAS_status){
-      case _FIRE: sendData_fire();  break;
-      case _GAS: sendData_gas();  break;
-      case _WARNING: sendData_fire(); sendData_gas(); break;
-      case _QUAKE: sendData_EarthQuake(); break;
+  else{                 //이벤트 발생 시(경보기 동작 시)
+    switch(SBAS_status){  //SBAS 상태 값에 따라 독립적으로 전달
+      case _FIRE: sendData_fire();  break;  //화재 경보기 값
+      case _GAS: sendData_gas();  break;    //가스 경보기 값
+      case _WARNING: sendData_fire(); sendData_gas(); break;    //화재 및 가스 경보기 값
+      case _QUAKE: sendData_EarthQuake(); break;    //지진 경보기 값
     }
-    sendFCM(getToken());
-  }
+    sendFCM(getToken());      //사용자 어플을 통해 알람을 보내기 위한 처리 함수.
+  }                            //경보기(H/W) -> 서버 -> 사용자 어플| 이때 token 값 이용
 }
 
-bool toggleControl(){
-  if(digitalRead(sw) == LOW && !isPushed){
-    isPushed = true;
+bool toggleControl(){    //버튼 값을 bool로 반환하는 함수
+  if(digitalRead(sw) == LOW && !isPushed){  //버튼이 눌렸을 때
+    isPushed = true;            //버튼 감지 값 1
     toggleAlert = !toggleAlert;  //스위치 눌리면 알람 상태 on-off 변환
     toggleFire = !toggleFire;
     toggleGas = !toggleGas;
     toggleQuake = !toggleQuake;  //경보기 일괄 해제/설정(버튼 1개이기 때문)
-    delay(200);
+    delay(200);    //채터링 방지용이나, H/W의 더딘 동작으로 이어질 수 있음
   }
-  else if (digitalRead(sw) == HIGH) isPushed = false;
+  else if (digitalRead(sw) == HIGH) isPushed = false;  //버튼이 떼어졌다면 값 0
 
   return toggleAlert;
 }
