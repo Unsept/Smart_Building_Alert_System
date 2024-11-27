@@ -1,5 +1,5 @@
 #include <WiFiNINA.h>     //아두이노 와이파이2 보드용 라이브러리(와이파이를 이용한 서버 접속)
-#include <ArduinoJson.h>  //서버-클라이언트 데이터 파싱을 위한 라이브라리.(JASON 형식)
+#include <ArduinoJson.h>  //서버-클라이언트 데이터 파싱을 위한 라이브라리.(JSON 형식)
 
 #include <DallasTemperature.h>  //온도 센서를 위한 라이브러리
 
