@@ -12,11 +12,11 @@
 #define _SAFE 0
 #define _FIRE 1
 #define _GAS 2
-#define _QUAKE 3  //SBAS 상태 사전 정의 키워드
+#define _QUAKE 3  //SBAS 상태 사전 정의 키워드, State Predefined
 
-#define _PORT 8888
+#define _PORT 8888  //임의의 값, 조정 가능, Random port, It could be another value.
 
-volatile int SBAS_status = _SAFE;  //현재 상태 저장 변수
+volatile int SBAS_status = _SAFE;  //현재 상태 저장 변수, for save current state
 //------------------------------------------------------------------------------
 #define ONE_WIRE_BUS 4
 OneWire oneWire(ONE_WIRE_BUS);
