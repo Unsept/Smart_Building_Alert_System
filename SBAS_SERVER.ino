@@ -1,60 +1,60 @@
 #include <WiFiNINA.h>     //아두이노 와이파이2 보드용 라이브러리(와이파이를 이용한 서버 접속)
-#include <ArduinoJson.h>  //Server-Client, To Parsing Datas, 서버-클라이언트 데이터 파싱을 위한 라이브라리.(JASON 형식)
+#include <ArduinoJson.h>  //서버-클라이언트 데이터 파싱을 위한 라이브라리.(JASON 형식)
 
-#include <DallasTemperature.h>  //Temperature Sensor Libary, 온도 센서를 위한 라이브러리
+#include <DallasTemperature.h>  //온도 센서를 위한 라이브러리
 
-#include <Arduino_LSM6DS3.h>  //Gyro Sensor Libarary, 자이로 센서를 위한 라이브러리
+#include <Arduino_LSM6DS3.h>  //자이로 센서를 위한 라이브러리
 
 #include <NTPClient.h>
-#include <WiFiUdp.h>    //To get Server Time, 서버 시간을 얻어오기 위한 라이브러리(NTPClient로 부터 시간 GET)
+#include <WiFiUdp.h>    //서버 시간을 얻어오기 위한 라이브러리(NTPClient로 부터 시간 GET)
 //------------------------------------------------------------------------------
 #define _WARNING -1
 #define _SAFE 0
 #define _FIRE 1
 #define _GAS 2
-#define _QUAKE 3  //SBAS 상태 사전 정의 키워드, State Predefined
+#define _QUAKE 3  //SBAS 상태 사전 정의 키워드
 
-#define _PORT 8888  //임의의 값, 조정 가능, Random port, It could be another value.
+#define _PORT 8888  //임의의 값, 조정 가능
 
-volatile int SBAS_status = _SAFE;  //현재 상태 저장 변수, for save current state
+volatile int SBAS_status = _SAFE;  //현재 상태 저장 변수
 //------------------------------------------------------------------------------
 #define ONE_WIRE_BUS 4
 OneWire oneWire(ONE_WIRE_BUS);
-DallasTemperature temp(&oneWire);  //온도 감지 모듈 핀 지정 및 객체 생성, pin assignment, object creation (temp sensor)
+DallasTemperature temp(&oneWire);  //온도 감지 모듈 핀 지정 및 객체 생성
 
-int flame_sensor = 7;  //불꽃 감지 모듈 핀, assign pin No. (flame sensor)
+int flame_sensor = 7;  //불꽃 감지 모듈 핀
 
 int gas_flammable = A1;
-int gas_CO = A0;  //MQ센서 모듈 핀 mq7-CO, mq6-인화성가스  assign pin No. (gas sensor, ANALOG)
+int gas_CO = A0;  //MQ센서 모듈 핀 mq7-CO, mq6-인화성가스
 
-int sw = 13;  //SW 모듈 핀, tact switch pin
+int sw = 13;  //SW 모듈 핀(tact-switch, 인터럽트용)
 
 int led_G = 9;
 int led_R = 10;
 int led_B = 6;  //3-Color LED 모듈 핀
 
-int buzzer = 12;  //수동 부저 모듈 핀, passive buzzer
+int buzzer = 12;  //수동 부저 모듈 핀
 //------------------------------------------------------------------------------
 
-IPAddress serverIP(xxx, xx, x, xx);  //x자리에 접속하고자 하는 IP 입력, Put IP Addres in x  "xxx.xx.x.xx"
+IPAddress serverIP(xxx, xx, x, xx);  //x자리에 접속하고자 하는 IP 입력
 
 char ssid[] = "YOUR_SSID";
 char pass[] = "YOUR_PSSWD";
 
-int port = 80;  //Random port, It could be another value.
+int port = 80;  //임의의 값, 조정 가능
 int status = WL_IDLE_STATUS;
 
-WiFiServer server(port);
-WiFiClient client;
+WiFiServer server(port);  //port 80으로 와이파이 서버 객체 생성
+WiFiClient client;      //클라리언트 객체 생성
 //-----------------------------------------------------------------------------
-char ntpServer = "pool.ntp.org";
-int timeZone = 9;
-int summerTime = 0;
+char ntpServer = "pool.ntp.org";    //ntp로 부터 url 가져옴
+int timeZone = 9;                  //GMT, 그리니치 기준 시 설정 (한국이므로 +9시간)
+int summerTime = 0;                //섬머타임 적용하지 않음
 
-WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP);
+WiFiUDP ntpUDP;                                            //WiFiUDP를 통해
+NTPClient timeClient(ntpUDP, ntpServer, timeZone*3600);    //NTP로부터 시간을 가져오는 객체 생성
 //-----------------------------------------------------------------------------
-const char* token; 
+const char* token;             //서버로부터 토큰 값을 가져올 변수
 
 unsigned long previousMillis = 0;  //이전 시간 저장
 const long interval = 500;         //인터벌 타임 지정
@@ -67,20 +67,20 @@ bool toggleAlert;  //알람 On/Off 변수
 
 bool toggleFire = true;
 bool toggleGas = true;
-bool toggleQuake = true;
+bool toggleQuake = true;      //각 센서별 토글 변수, 외부 인터럽트용
 //--------------------------------------------------------------------------------
-void setup() {  //초기화
-  isPushed = false;
-  Serial.begin(9600);
-  init_rgbLED();
-  init_sensors();
-  pinMode(sw, INPUT_PULLUP);
+void setup() {  //초기화 동작
+  isPushed = false;        //토글 변수 초기값: False
+  //Serial.begin(9600);    //디버깅용
+  init_rgbLED();            //LED핀 초기화
+  init_sensors();           //센서 초기화
+  pinMode(sw, INPUT_PULLUP);  //풀업 저항 스위치 설정
 
-  connectWiFi();
+  connectWiFi();          //초기화(장치 동작) 시에 와이파이 연결
 
-  server.begin();
-  printWifiStatus();
-  setupTime();
+  server.begin();        //서버 시작
+  //printWifiStatus();    //디버깅용, 와이파이 상태창 표시
+  setupTime();            //서버 시간 설정
 }
  //---------------------------------------------------------------------------------
 void init_rgbLED() {  //LED모듈 초기화 함수
