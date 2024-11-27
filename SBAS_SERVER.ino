@@ -464,7 +464,7 @@ const char* getToken() {                    //서버에게 token값을 요청하
     return token; 
 }
 
-void sendFCM(const char* token) {        //token 값 매겨변수 이용                     ┌  Message  ┐
+void sendFCM(const char* token) {        //token 값 매개변수 이용                     ┌  Message  ┐
     DynamicJsonDocument doc(1024);                                             // token        data
     doc["message"]["token"] = String(token);                                   //                |
     doc["message"]["data"]["warningId"] = String(SBAS_status);                 //              warningId
