@@ -72,15 +72,15 @@ bool toggleQuake = true;      //각 센서별 토글 변수, 외부 인터럽트
 void setup() {  //초기화 동작
   isPushed = false;        //토글 변수 초기값: False
   //Serial.begin(9600);    //디버깅용
-  init_rgbLED();            //LED핀 초기화
-  init_sensors();           //센서 초기화
+  init_rgbLED();            //LED핀 초기화  code => Line 86~90
+  init_sensors();           //센서 초기화   code => Line 97~103
   pinMode(sw, INPUT_PULLUP);  //풀업 저항 스위치 설정
 
-  connectWiFi();          //초기화(장치 동작) 시에 와이파이 연결
+  connectWiFi();          //초기화(장치 동작) 시에 와이파이 연결  code => Line 323~331
 
   server.begin();        //서버 시작
-  //printWifiStatus();    //디버깅용, 와이파이 상태창 표시
-  setupTime();            //서버 시간 설정
+  //printWifiStatus();    //디버깅용, 와이파이 상태창 표시 code => Line 312~321
+  setupTime();            //서버 시간 설정, code => Line 333~337
 }
  //---------------------------------------------------------------------------------
 void init_rgbLED() {  //LED모듈 초기화 함수
@@ -90,17 +90,16 @@ void init_rgbLED() {  //LED모듈 초기화 함수
 }
 void startGyro() {  //내장 자이로 센서 초기화 함수
   if (!IMU.begin()) {
-    Serial.println("Failed to init GYRO");  //<- 없어도 되긴 함(디버깅용)
-    while (1)
-      ;
+   // Serial.println("Failed to init GYRO");  //초기화 실패시 시리얼 모니터에 출력
+    while (1);
   }
 }
 void init_sensors() {  //각종 센서 초기화 함수
-  pinMode(flame_sensor, INPUT);
-  pinMode(gas_CO, INPUT);
-  pinMode(gas_flammable, INPUT);
-  temp.begin();
-  startGyro();
+  pinMode(flame_sensor, INPUT);      //불꽃 감지
+  pinMode(gas_CO, INPUT);            //일산화 탄소
+  pinMode(gas_flammable, INPUT);     //인화성 가스
+  temp.begin();                //온도 센서 시작
+  startGyro();                //자이로 센서 초기화
 }
 void ledColor(int red, int green, int blue) {  //LED 색 지정 함수
   analogWrite(led_R, red);
