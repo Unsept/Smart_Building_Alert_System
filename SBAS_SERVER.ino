@@ -14,7 +14,7 @@
 #define _GAS 2
 #define _QUAKE 3  //SBAS 상태 사전 정의 키워드
 
-#define _PORT 8888  //임의의 값, 조정 가능
+#define _PORT 8888  //서버 포트-임의의 값, 조정 가능
 
 volatile int SBAS_status = _SAFE;  //현재 상태 저장 변수
 //------------------------------------------------------------------------------
@@ -36,7 +36,7 @@ int led_B = 6;  //3-Color LED 모듈 핀, PWM 제어 가능
 int buzzer = 12;  //수동 부저 모듈 핀
 //------------------------------------------------------------------------------
 
-IPAddress serverIP(xxx, xx, x, xx);  //x자리에 접속하고자 하는 IP 입력
+IPAddress serverIP(xxx, xx, x, xx);  //x자리에 접속하고자 하는 "서버" IP 입력
 
 char ssid[] = "YOUR_SSID";
 char pass[] = "YOUR_PSSWD";
@@ -44,7 +44,7 @@ char pass[] = "YOUR_PSSWD";
 int port = 80;  //임의의 값, 조정 가능
 int status = WL_IDLE_STATUS;
 
-WiFiServer server(port);  //port 80으로 와이파이 서버 객체 생성
+WiFiServer server(port);  //port 80으로 "와이파이" 서버 객체 생성
 WiFiClient client;      //클라리언트 객체 생성
 //-----------------------------------------------------------------------------
 char ntpServer = "pool.ntp.org";    //ntp로 부터 url 가져옴
@@ -313,7 +313,7 @@ void handleDevice(bool control){      //매개변수로 위의 함수를 이용�
   Serial.print("SSID: ");
   Serial.println(WiFi.SSID());    //와이파이 ID와
 
-  IPAddress ip = WiFi.localIP();
+  IPAddress ip = WiFi.localIP();    //"와이파이 IP"
   Serial.print("IP Address: ");
   Serial.println(ip);              //해당 IP를 제공
 
