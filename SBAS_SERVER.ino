@@ -20,23 +20,23 @@ volatile int SBAS_status = _SAFE;  //현재 상태 저장 변수, for save curre
 //------------------------------------------------------------------------------
 #define ONE_WIRE_BUS 4
 OneWire oneWire(ONE_WIRE_BUS);
-DallasTemperature temp(&oneWire);  //온도 감지 모듈 핀 지정 및 객체 생성
+DallasTemperature temp(&oneWire);  //온도 감지 모듈 핀 지정 및 객체 생성, pin assignment, object creation (temp sensor)
 
-int flame_sensor = 7;  //불꽃 감지 모듈 핀
+int flame_sensor = 7;  //불꽃 감지 모듈 핀, assign pin No. (flame sensor)
 
 int gas_flammable = A1;
-int gas_CO = A0;  //MQ센서 모듈 핀 mq7-CO, mq6-인화성가스
+int gas_CO = A0;  //MQ센서 모듈 핀 mq7-CO, mq6-인화성가스  assign pin No. (gas sensor, ANALOG)
 
-int sw = 13;  //SW 모듈 핀
+int sw = 13;  //SW 모듈 핀, tact switch pin
 
 int led_G = 9;
 int led_R = 10;
 int led_B = 6;  //3-Color LED 모듈 핀
 
-int buzzer = 12;  //수동 부저 모듈 핀
+int buzzer = 12;  //수동 부저 모듈 핀, passive buzzer
 //------------------------------------------------------------------------------
 
-IPAddress serverIP(xxx, xx, x, xx);  //Put IP Addres in x  "xxx.xx.x.xx"
+IPAddress serverIP(xxx, xx, x, xx);  //x자리에 접속하고자 하는 IP 입력, Put IP Addres in x  "xxx.xx.x.xx"
 
 char ssid[] = "YOUR_SSID";
 char pass[] = "YOUR_PSSWD";
