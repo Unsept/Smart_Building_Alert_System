@@ -35,15 +35,13 @@ int led_B = 6;  //3-Color LED 모듈 핀
 
 int buzzer = 12;  //수동 부저 모듈 핀
 //------------------------------------------------------------------------------
-char ssid[] = "U+NetCDF1";
-char pass[] = "!park9581";
 
-IPAddress serverIP(172, 30, 1, 68);
+IPAddress serverIP(xxx, xx, x, xx);  //Put IP Addres in x  "xxx.xx.x.xx"
 
-//char ssid[] = "KT_GiGA_37B7";
-//char pass[] = "chb14zz252";
+//char ssid[] = "YOUR_SSID";
+//char pass[] = "YOUR_PSSWD";
 
-int port = 80;
+int port = 80;  //Random port, It could be another value.
 int status = WL_IDLE_STATUS;
 
 WiFiServer server(port);
